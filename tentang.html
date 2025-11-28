@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tentang Peta Desa Bungko</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: whitesmoke;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background: linear-gradient(green,rgb(0, 167, 0));
+      color: white;
+      text-align: center;
+      padding: 20px 10px;
+      font-size: 13px;
+      font-weight: bold;
+      box-shadow: 0 15px 12px rgba(0,0,0,0.2);
+    }
+    .content {
+      max-width: 850px;
+      margin: 30px auto;
+      background: white;
+      padding: 25px;
+      border-radius: 14px;
+      box-shadow: 0 5px 18px rgba(0,0,0,0.15);
+      line-height: 1.7;
+    }
+    h2 {
+      text-align: center;
+      color: green;
+      margin-bottom: 20px;
+    }
+    p {
+      font-size: 16px;
+      color: #333;
+      text-align: justify;
+    }
+    .info {
+      background: #f0fff0;
+      border-left: 5px solid green;
+      padding: 15px;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+    footer {
+      text-align: center;
+      padding: 15px;
+      color: #555;
+      font-size: 14px;
+    }
+.sidebar {
+  position: absolute;
+  top: 0;
+  left: -250px;
+  width: 250px;
+  height: 100%;
+  background: #ffffff;
+  box-shadow: 2px 0 5px rgba(0,0,0,0.3);
+  padding-top: 60px;
+  transition: left 0.3s ease;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+}
+.sidebar a {
+  padding: 15px 20px;
+  text-decoration: none;
+  color: #000;
+  font-weight: 500;
+  border-bottom: 1px solid #ddd;
+}
+.sidebar a:hover {
+  background: #f0f0f0;
+}
+.sidebar.active {
+  left: 0;
+}
+
+
+.menu-toggle {
+  position: absolute;
+  top: 20px;
+  left: 15px;
+  width: 30px;
+  height: 22px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+  z-index: 1100;
+  transition: left 0.3s ease;
+}
+.menu-toggle div {
+  width: 100%;
+  height: 3px;
+  background-color: #000000;
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+
+.menu-toggle.active div:nth-child(1) {
+  transform: rotate(45deg) translate(5px, 5px);
+}
+.menu-toggle.active div:nth-child(2) {
+  opacity: 0;
+}
+.menu-toggle.active div:nth-child(3) {
+  transform: rotate(-45deg) translate(5px, -5px);
+}
+
+
+.sidebar.active ~ .menu-toggle {
+  left: 265px;
+}
+
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: none;
+  z-index: 900;
+}
+.overlay.active {
+  display: block;
+}
+.sidebar a:hover {
+  background: grey;
+  color: white;
+}
+
+  </style>
+</head>
+<body>
+
+  <header>Tentang Peta Desa Bungko</header>
+<div class="menu-toggle" onclick="toggleSidebar()">
+    <div></div>
+    <div></div>
+    <div></div>
+  </div>
+
+  <div id="sidebar" class="sidebar">
+     <a href="data.html">⦿ Halaman Peta</a>
+    <a href="table.html">≣ Halaman Tabel</a>
+    <a href="bumdes.html">⌂ Produk BUMDes</a>
+    <a href="pajak.html">⚖ Pajak</a>
+    <a href="tentang.html">ⓘ Tentang</a>
+    <a href="#" onclick="logout()">⏻ Logout</a>
+  </div>
+
+  <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+  <div class="content">
+    <h2>Informasi Umum</h2>
+    <p>
+      Peta interaktif Desa Bungko ini dibuat untuk mempermudah masyarakat dan pemerintah desa 
+      dalam mengelola, melihat, dan memperbarui data rumah serta penduduk. 
+      Sistem ini dirancang dengan teknologi web modern. web ini di rancang oleh pemerintah desa Bungko.
+      </b>
+    </p>
+
+    <div class="info">
+      <p><b>Desa Bungko</b> terletak di Kecamatan Kotamobagu Selatan, 
+      dengan luas wilayah sekitar <b>12,34 km²</b> dan jumlah penduduk 
+      sekitar <b>1830 jiwa</b>.</p>
+      <p>Peta ini menampilkan titik-titik lokasi rumah, tempat ibadah, fasilitas umum, 
+      serta informasi anggota keluarga yang dapat diakses melalui QR Code.</p>
+    </div>
+
+    <h2>Tujuan Pengembangan</h2>
+    <p>
+      Tujuan utama dari peta digital ini adalah meningkatkan transparansi data desa 
+      dan memberikan kemudahan akses bagi perangkat desa maupun masyarakat. 
+      Melalui sistem ini, informasi dapat diperbarui secara cepat tanpa perlu 
+      membuka dokumen fisik atau peta manual.
+    </p>
+
+    <div style="text-align:center;margin-top:30px;">
+    </div>
+  </div>
+
+  <footer>
+    © Pemerintah Desa Bungko — Semua Hak Dilindungi
+  </footer>
+<script>
+function toggleSidebar() {
+  const sidebar = document.getElementById("sidebar");
+  const overlay = document.getElementById("overlay");
+  const toggle = document.querySelector(".menu-toggle");
+
+  sidebar.classList.toggle("active");
+  overlay.classList.toggle("active");
+  toggle.classList.toggle("active");
+}
+
+function logout() {
+  sessionStorage.removeItem("userLoggedIn");
+  window.location.href = "index.html";
+}
+
+</script>
+
+</body>
+</html>

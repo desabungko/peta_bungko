@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Produk BUMDes Desa Bungko</title>
+  <style>
+    body {
+      font-family: "Poppins", sans-serif;
+      background: linear-gradient(180deg, #e8f5e9, #ffffff);
+      margin: 0;
+      padding: 0;
+      color: #222;
+    }
+
+    header {
+      background: linear-gradient(135deg, #00bb32, #005523);
+      color: rgb(255, 255, 255);
+      text-align: center;
+      padding: 25px 15px;
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      box-shadow: 0 10px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .container {
+      max-width: 1150px;
+      margin: 50px auto;
+      padding: 20px;
+      text-align: center;
+    }
+
+    h2 {
+      color: #000000;
+      font-size: 24px;
+      margin-bottom: 30px;
+    }
+
+    .produk-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 25px;
+    }
+
+    .produk-card {
+      background: rgb(255, 255, 255);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 20px 30px rgba(0, 0, 0, 0.15);
+      transition: all 0.35s ease;
+      position: relative;
+    }
+
+    .produk-card:hover {
+      transform: translateY(-6px) scale(1.02);
+      box-shadow: 0 14px 35px rgba(0, 0, 0, 0.25);
+    }
+
+    .produk-card img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      transition: 0.3s;
+    }
+
+    .produk-card:hover img {
+      filter: brightness(1.05);
+      transform: scale(1.05);
+    }
+
+    .produk-info {
+      padding: 18px;
+      text-align: center;
+    }
+
+    .produk-info h3 {
+      color: #0a7d29;
+      font-size: 18px;
+      font-weight: 600;
+      margin: 10px 0 6px;
+    }
+
+    .produk-info .harga {
+      color: #00b94d;
+      font-weight: 700;
+      font-size: 17px;
+      margin-bottom: 6px;
+    }
+
+    .produk-info p {
+      font-size: 14px;
+      color: #7a7a7a;
+      margin-top: 0;
+      line-height: 1.5;
+    }
+
+    footer {
+      text-align: center;
+      padding: 15px;
+      font-size: 13px;
+      color: #555;
+      background: #f4f4f4;
+      border-top: 2px solid #00682b;
+      margin-top: 60px;
+    }
+  
+.sidebar {
+  position: absolute;
+  top: 0;
+  left: -250px;
+  width: 250px;
+  height: 100%;
+  background: #ffffff;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.3);
+  padding-top: 60px;
+  transition: left 0.3s ease;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+}
+.sidebar a {
+  padding: 15px 20px;
+  text-decoration: none;
+  color: #000;
+  font-weight: 500;
+  border-bottom: 1px solid #ddd;
+}
+.sidebar a:hover {
+  background: #f0f0f0;
+}
+.sidebar.active {
+  left: 0;
+}
+.menu-toggle {
+  position: absolute;
+  top: 20px;
+  left: 15px;
+  width: 30px;
+  height: 22px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+  z-index: 1100;
+  transition: left 0.3s ease;
+}
+.menu-toggle div {
+  width: 100%;
+  height: 3px;
+  background-color: #000000;
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+.menu-toggle.active div:nth-child(1) {
+  transform: rotate(45deg) translate(5px, 5px);
+}
+.menu-toggle.active div:nth-child(2) {
+  opacity: 0;
+}
+.menu-toggle.active div:nth-child(3) {
+  transform: rotate(-45deg) translate(5px, -5px);
+}
+
+
+.sidebar.active ~ .menu-toggle {
+  left: 265px; 
+}
+
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: none;
+  z-index: 900;
+}
+.overlay.active {
+  display: block;
+}
+.sidebar a:hover {
+  background: grey;
+  color: white;
+}
+
+  </style>
+</head>
+<body>
+  <header>BUMDes</header>
+<div class="menu-toggle" onclick="toggleSidebar()">
+    <div></div>
+    <div></div>
+    <div></div>
+  </div>
+
+  <div id="sidebar" class="sidebar">
+     <a href="data.html">⦿ Halaman Peta</a>
+    <a href="table.html">≣ Halaman Tabel</a>
+    <a href="bumdes.html">⌂ Produk BUMDes</a>
+    <a href="pajak.html">⚖ Pajak</a>
+    <a href="tentang.html">ⓘ Tentang</a>
+    <a href="#" onclick="logout()">⏻ Logout</a>
+  </div>
+
+
+  <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+  <div class="container">
+    <h2>Produk Unggulan UMKM Desa Bungko 🌿</h2>
+
+    <div class="produk-grid" id="produkList"></div>
+
+  </div>
+
+  <footer>© BUMDes Bungko — Mendukung UMKM Lokal</footer>
+
+  <script>
+    const produkBumdes = [
+      {
+        nama: "Keripik Pisang Bungko",
+        harga: "Rp10.000",
+        deskripsi: "Keripik pisang renyah khas Desa Bungko, diproduksi oleh UMKM lokal menggunakan bahan alami.",
+        foto: "bongkai.webp"
+      },
+      {
+        nama: "Kopi Bubuk Bungko",
+        harga: "Rp25.000",
+        deskripsi: "Kopi robusta asli hasil panen masyarakat Bungko, digiling halus dan dikemas secara higienis.",
+        foto: "kopi.webp"
+      },
+      {
+        nama: "Minyak Kelapa Asli",
+        harga: "Rp30.000",
+        deskripsi: "Minyak kelapa murni hasil olahan warga Bungko, tanpa bahan pengawet dan 100% alami.",
+        foto: "minyak.jpg"
+      },
+      {
+        nama: "Abon Ikan Cakalang",
+        harga: "Rp20.000",
+        deskripsi: "Abon ikan cakalang khas Bungko yang gurih dan lezat, cocok untuk lauk, oleh-oleh, atau cemilan.",
+        foto: "abon.jpg"
+      },
+      {
+        nama: "Sambal Ikan Roa Bungko",
+        harga: "Rp15.000",
+        deskripsi: "Sambal roa pedas nikmat buatan tangan warga Bungko, rasa khas Sulawesi Utara.",
+        foto: "sambal.jpg"
+      }
+    ];
+
+    function tampilProduk() {
+      const list = document.getElementById("produkList");
+      produkBumdes.forEach(p => {
+        list.innerHTML += `
+          <div class="produk-card">
+            <img src="${p.foto}" alt="${p.nama}">
+            <div class="produk-info">
+              <h3>${p.nama}</h3>
+              <div class="harga">${p.harga}</div>
+              <p>${p.deskripsi}</p>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    window.onload = tampilProduk;
+  </script>
+  <script>
+function toggleSidebar() {
+  const sidebar = document.getElementById("sidebar");
+  const overlay = document.getElementById("overlay");
+  const toggle = document.querySelector(".menu-toggle");
+
+  sidebar.classList.toggle("active");
+  overlay.classList.toggle("active");
+  toggle.classList.toggle("active");
+}
+function logout() {
+  sessionStorage.removeItem("userLoggedIn");
+  window.location.href = "index.html";
+}
+
+</script>
+</body>
+</html>

@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data Warga Desa Bungko</title>
+<style>
+:root {
+  --primary: #000000;
+  --primary-hover: #001f86;
+  --success: #000000;
+  --danger: #990000;
+  --text-dark: #1f2937;
+}
+body {
+  font-family: "Segoe UI", Arial, sans-serif;
+  background: linear-gradient(rgb(209,209,209));
+  color: var(--text-dark);
+  margin: 0;
+  padding: 20px;
+}
+h2 {
+  border-left: 5px solid var(--primary);
+  padding-left: 10px;
+  color: var(--primary);
+  font-weight: 600;
+  margin-top: 40px;
+}
+input[type="text"], input[type="password"] {
+  padding: 8px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  outline: none;
+  transition: 0.2s;
+}
+input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(37,99,235,0.2);
+}
+button {
+  border: none;
+  border-radius: 3px;
+  padding: 4px 7px;
+  color: #fff;
+  font-weight: 300;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+.tambah { background: var(--success); }
+.tambah:hover { background: #060057; }
+.edit { background: var(--primary); }
+.edit:hover { background: var(--primary-hover); }
+.hapus { background: var(--danger); }
+.hapus:hover { background: #b91c1c; }
+form {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 25px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px 15px;
+  align-items: center;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border: 1px solid #000;
+  border-radius: 8px;
+  overflow: hidden;
+}
+th, td {
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 1px solid #000;
+}
+th { background: linear-gradient(rgb(0, 187, 0),rgb(0, 212, 0)); font-weight: 600; }
+tr:hover td { background: #dedede; }
+ul { margin:0; padding-left:18px; }
+
+#loginPage {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: url("zbkg.webp") no-repeat center center/cover;
+  z-index: 999;
+  animation: fadeInBg 1s ease-in-out;
+}
+@keyframes fadeInBg { from{opacity:0;} to{opacity:1;} }
+
+.login-card {
+  background: rgba(255,255,255,0.25);
+  backdrop-filter: blur(3px);
+  border-radius: 16px;
+  padding: 40px 35px;
+  width: 300px;
+  text-align: center;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+  color: #fff;
+  animation: slideIn 0.8s ease;
+}
+@keyframes slideIn { from { opacity:0; transform:translateY(-20px); } to { opacity:1; transform:translateY(0); } }
+.login-card img { width:80px; margin-bottom:10px; }
+.login-card p { color:#f1f1f1; font-size:14px; margin-bottom:20px; }
+.login-card input { width:100%; margin-bottom:15px; padding:10px; border-radius:8px; border:none; outline:none; background:rgba(255, 255, 255, 0.8); color:#000; }
+.login-card button { width:100%; background:linear-gradient(90deg,#00b200,#006108); border:none; border-radius:8px; padding:10px; font-weight:bold; color:#fff; cursor:pointer; transition:0.3s; }
+.login-card button:hover { background:linear-gradient(90deg,#009900,#008a12); transform:scale(1.03);}
+.error-msg { color:#ff4444; font-size:14px; display:none; margin-top:5px;}
+#mainContent { display:none; margin-top:20px;}
+.download-btn, .upload-btn { margin-top:15px; background:#333; }
+.download-btn:hover, .upload-btn:hover { background:#555; }
+
+.sidebar {
+  position: absolute;
+  top: 0;
+  left: -250px; 
+  width: 250px;
+  height: 100%;
+  background: #ffffff;
+  box-shadow: 2px 0 5px rgba(0,0,0,0.3);
+  padding-top: 60px;
+  transition: left 0.3s ease;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+}
+.sidebar a {
+  padding: 15px 20px;
+  text-decoration: none;
+  color: #000;
+  font-weight: 500;
+  border-bottom: 1px solid #ddd;
+}
+.sidebar a:hover {
+  background: #f0f0f0;
+}
+
+
+.sidebar.active {
+  left: 0;
+}
+
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: none;
+  z-index: 900;
+}
+.overlay.active {
+  display: block;
+}
+
+
+.menu-toggle {
+  position: absolute;       
+  top: 15px;
+  left: 15px;             
+  width: 30px;
+  height: 22px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+  z-index: 1101;          
+  transition: left 0.3s ease;
+}
+
+.menu-toggle div {
+  width: 100%;
+  height: 3px;
+  background-color: #000;
+  transition: all 0.3s ease;
+  border-radius: 2px;
+}
+
+
+.menu-toggle.active div:nth-child(1) {
+  transform: rotate(45deg) translate(5px, 5px);
+}
+.menu-toggle.active div:nth-child(2) {
+  opacity: 0;
+}
+.menu-toggle.active div:nth-child(3) {
+  transform: rotate(-45deg) translate(5px, -5px);
+}
+
+
+.sidebar.active ~ .menu-toggle {
+  left: 265px; 
+}
+.sidebar a:hover {
+  background: grey;
+  color: white;
+}
+
+
+
+</style>
+</head>
+<body>
+
+
+<div id="loginPage">
+  <div class="login-card">
+    <img src="logo-bungko.webp" alt="Logo">
+    <p>Masukkan kata sandi untuk membuka data</p>
+    <input type="password" id="passwordInput" placeholder="Kata sandi...">
+    <button onclick="cekSandi()">Masuk</button>
+    <p id="errorMsg" class="error-msg">Kata sandi salah!</p>
+  </div>
+</div>
+<div class="menu-toggle" onclick="toggleSidebar()">
+    <div></div>
+    <div></div>
+    <div></div>
+  </div>
+
+  <div id="sidebar" class="sidebar">
+     <a href="data.html">⦿ Halaman Peta</a>
+    <a href="table.html">≣ Halaman Tabel</a>
+    <a href="bumdes.html">⌂ Produk BUMDes</a>
+    <a href="pajak.html">⚖ Pajak</a>
+    <a href="tentang.html">ⓘ Tentang</a>
+    <a href="#" onclick="logout()">⏻ Logout</a>
+  </div>
+
+
+  <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+<div id="mainContent">
+<h2>Data Warga Desa Bungko</h2>
+<input type="text" id="cariTabel" placeholder="Cari nama rumah, anggota, atau NIK..." oninput="cariTabel()">
+ 
+ 
+
+<h2>Penghuni Asli Desa</h2>
+<form id="formAsli">
+  <input type="text" id="namaAsli" placeholder="Nama Rumah" required>
+  <input type="text" id="nikAsli" placeholder="NIK (pisahkan dengan koma)" required>
+  <input type="text" id="anggotaAsli" placeholder="Nama Anggota (pisahkan dengan koma)" required>
+  <input type="text" id="lahirAsli" placeholder="Tanggal Lahir (pisahkan dengan koma, format YYYY-MM-DD)" required>
+  <input type="text" id="statusAsli" placeholder="Status (pisahkan dengan koma, urut sesuai anggota)" required>
+  <button type="submit" class="tambah">Tambah Data</button>
+</form>
+
+<table id="tabelAsli">
+<thead>
+<tr>
+<th>No</th><th>Nama Rumah</th><th>NIK</th><th>Anggota</th><th>Tanggal Lahir</th><th>Umur</th><th>Status</th><th>Aksi</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
+
+<h2>Penghuni Domisili</h2>
+<form id="formPendatang">
+  <input type="text" id="namaPendatang" placeholder="Nama Rumah" required>
+  <input type="text" id="nikPendatang" placeholder="NIK (pisahkan dengan koma)" required>
+  <input type="text" id="anggotaPendatang" placeholder="Nama Anggota (pisahkan dengan koma)" required>
+  <input type="text" id="lahirPendatang" placeholder="Tanggal Lahir (pisahkan dengan koma, format YYYY-MM-DD)" required>
+  <input type="text" id="statusPendatang" placeholder="Status (pisahkan dengan koma, urut sesuai anggota)" required>
+  <button type="submit" class="tambah">Tambah Data</button>
+</form>
+
+<table id="tabelPendatang">
+<thead>
+<tr>
+<th>No</th><th>Nama Rumah</th><th>NIK</th><th>Anggota</th><th>Tanggal Lahir</th><th>Umur</th><th>Status</th><th>Aksi</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
+
+<button class="download-btn" onclick="simpanSemuaData()">💾 SAVE DATA</button>
+<button class="upload-btn" onclick="muatDariFile()">📂 MUAT DATA</button>
+</div>
+
+<script>
+const passwordBenar="adminkandes2025";
+function cekSandi(){
+  const input=document.getElementById("passwordInput").value.trim();
+  const error=document.getElementById("errorMsg");
+  if(input===passwordBenar){
+    document.getElementById("loginPage").style.display="none";
+    document.getElementById("mainContent").style.display="block";
+    muatSemuaData();
+  } else {
+    error.style.display="block"; setTimeout(()=>error.style.display="none",2000);
+  }
+}
+
+function hitungUmur(tgl){
+  if(!tgl) return ""; const d=new Date(tgl); if(isNaN(d)) return "";
+  const now=new Date(); let u=now.getFullYear()-d.getFullYear();
+  const b=now.getMonth()-d.getMonth(); if(b<0||(b===0&&now.getDate()<d.getDate()))u--;
+  return u+" tahun";
+}
+function buatDaftar(a){const ul=document.createElement("ul");
+  a.forEach(v=>{if(v.trim()!==""){const li=document.createElement("li");li.textContent=v.trim();ul.appendChild(li);}});return ul;}
+function urutkanNomor(t){t.querySelectorAll("tbody tr").forEach((r,i)=>{r.cells[0].textContent=i+1;});}
+function buatBaris(t,nama,nikT,anggotaT,lahirT,statusT){
+  const tb=t.querySelector("tbody"),r=tb.insertRow();
+  const n=nikT.split(",").map(x=>x.trim()).filter(x=>x),
+        a=anggotaT.split(",").map(x=>x.trim()).filter(x=>x),
+        l=lahirT.split(",").map(x=>x.trim()).filter(x=>x),
+        s=statusT.split(",").map(x=>x.trim()).filter(x=>x),
+        u=l.map(x=>hitungUmur(x)),len=Math.min(n.length,a.length,l.length,s.length);
+  r.insertCell(0);r.insertCell(1).textContent=nama;
+  r.insertCell(2).appendChild(buatDaftar(n.slice(0,len)));
+  r.insertCell(3).appendChild(buatDaftar(a.slice(0,len)));
+  r.insertCell(4).appendChild(buatDaftar(l.slice(0,len)));
+  r.insertCell(5).appendChild(buatDaftar(u.slice(0,len)));
+  r.insertCell(6).appendChild(buatDaftar(s.slice(0,len)));
+  r.insertCell(7).innerHTML=`<button class="edit" onclick="editData(this)">Edit</button><button class="hapus" onclick="hapusData(this)">Hapus</button>`;
+  urutkanNomor(t); simpanLocal();
+}
+function formHandler(f,t){
+  document.getElementById(f).addEventListener("submit",e=>{
+    e.preventDefault();const x=e.target;
+    buatBaris(document.getElementById(t),
+      x.querySelector('[id*="nama"]').value,
+      x.querySelector('[id*="nik"]').value,
+      x.querySelector('[id*="anggota"]').value,
+      x.querySelector('[id*="lahir"]').value,
+      x.querySelector('[id*="status"]').value);
+    x.reset();
+  });
+}
+formHandler("formAsli","tabelAsli"); formHandler("formPendatang","tabelPendatang");
+function hapusData(b){const t=b.closest("table");b.closest("tr").remove();urutkanNomor(t);simpanLocal();}
+function editData(b){const r=b.closest("tr"),t=b.closest("table").id,
+n=r.cells[1].textContent,
+nik=[...r.cells[2].querySelectorAll("li")].map(li=>li.textContent).join(", "),
+ang=[...r.cells[3].querySelectorAll("li")].map(li=>li.textContent).join(", "),
+lah=[...r.cells[4].querySelectorAll("li")].map(li=>li.textContent).join(", "),
+sta=[...r.cells[6].querySelectorAll("li")].map(li=>li.textContent).join(", ");
+hapusData(b);
+(t==="tabelAsli"?namaAsli:namaPendatang).value=n;
+(t==="tabelAsli"?nikAsli:nikPendatang).value=nik;
+(t==="tabelAsli"?anggotaAsli:anggotaPendatang).value=ang;
+(t==="tabelAsli"?lahirAsli:lahirPendatang).value=lah;
+(t==="tabelAsli"?statusAsli:statusPendatang).value=sta;}
+function cariTabel(){const q=document.getElementById("cariTabel").value.toLowerCase();
+document.querySelectorAll("tbody tr").forEach(r=>{r.style.display=r.textContent.toLowerCase().includes(q)?"":"none";});}
+
+function simpanLocal(){
+  const data={penghuniAsli:[],pendatang:[]};
+  document.querySelectorAll("#tabelAsli tbody tr").forEach(r=>data.penghuniAsli.push({
+    nama:r.cells[1].textContent,
+    nik:[...r.cells[2].querySelectorAll("li")].map(li=>li.textContent),
+    anggota:[...r.cells[3].querySelectorAll("li")].map(li=>li.textContent),
+    lahir:[...r.cells[4].querySelectorAll("li")].map(li=>li.textContent),
+    status:[...r.cells[6].querySelectorAll("li")].map(li=>li.textContent)
+  }));
+  document.querySelectorAll("#tabelPendatang tbody tr").forEach(r=>data.pendatang.push({
+    nama:r.cells[1].textContent,
+    nik:[...r.cells[2].querySelectorAll("li")].map(li=>li.textContent),
+    anggota:[...r.cells[3].querySelectorAll("li")].map(li=>li.textContent),
+    lahir:[...r.cells[4].querySelectorAll("li")].map(li=>li.textContent),
+    status:[...r.cells[6].querySelectorAll("li")].map(li=>li.textContent)
+  }));
+  localStorage.setItem("dataJSON",JSON.stringify(data));
+}
+function muatSemuaData(){
+  const data=JSON.parse(localStorage.getItem("dataJSON")||'{"penghuniAsli":[],"pendatang":[]}');
+  data.penghuniAsli.forEach(d=>buatBaris(document.getElementById("tabelAsli"),d.nama,d.nik.join(","),d.anggota.join(","),d.lahir.join(","),d.status.join(",")));
+  data.pendatang.forEach(d=>buatBaris(document.getElementById("tabelPendatang"),d.nama,d.nik.join(","),d.anggota.join(","),d.lahir.join(","),d.status.join(",")));
+}
+function simpanSemuaData(){
+  const data=JSON.parse(localStorage.getItem("dataJSON")||'{}');
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url; a.download="data.json"; a.click(); URL.revokeObjectURL(url);
+}
+function muatDariFile(){
+  const input=document.createElement("input");
+  input.type="file"; input.accept=".json";
+  input.onchange=e=>{
+    const file=e.target.files[0]; if(!file)return;
+    const reader=new FileReader();
+    reader.onload=()=>{
+      const data=JSON.parse(reader.result);
+      localStorage.setItem("dataJSON",JSON.stringify(data));
+      document.querySelectorAll("tbody").forEach(t=>t.innerHTML="");
+      muatSemuaData();
+      alert("✅ Data berhasil dimuat dari file JSON!");
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+function toggleSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('overlay');
+  const toggle = document.querySelector('.menu-toggle');
+
+  sidebar.classList.toggle('active');
+  overlay.classList.toggle('active');
+  toggle.classList.toggle('active');
+}
+function logout() {
+  sessionStorage.removeItem("userLoggedIn");
+  window.location.href = "index.html";
+}
+
+</script>
+</body>
+</html>

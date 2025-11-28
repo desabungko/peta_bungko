@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title> Pajak Tahunan Desa Bungko</title>
+  <style>
+    body {
+      font-family: "Poppins", sans-serif;
+      background: gray;
+      margin: 0;
+      padding: 0;
+      color: #222;
+    }
+    header {
+      background: linear-gradient(135deg, #0a7d29, #005e2a);
+      color: white;
+      text-align: center;
+      padding: 20px 15px;
+      font-size: 22px;
+      font-weight: bold;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    .container {
+      max-width: 1100px;
+      margin: 40px auto;
+      background: rgb(255, 255, 255);
+      border-radius: 16px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+      padding: 20px 25px;
+    }
+    h2 {
+      text-align: center;
+      color: #000000;
+      font-size: 15px;
+      margin-bottom: 25px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      min-width: 600px;
+    }
+    th, td {
+      padding: 12px;
+      border-bottom: 1px solid #000000;
+      text-align: center;
+      font-size: 15px;
+    }
+    th {
+      background: linear-gradient(#0a7d29, #005727);
+      color: white;
+      font-size: 16px;
+    }
+    tr:hover { background: #f1f8f4; }
+    .total {
+      text-align: right;
+      font-weight: bold;
+      color: #000000;
+      margin-top: 15px;
+      font-size: 17px;
+    }
+    .back-btn, .print-btn {
+      display: inline-block;
+      margin: 20px 10px;
+      background: linear-gradient(135deg, #0a7d29, #005828);
+      color: white;
+      text-decoration: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-weight: bold;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      transition: 0.2s;
+    }
+    .back-btn:hover, .print-btn:hover {
+      transform: scale(1.05);
+      filter: brightness(1.1);
+    }
+    footer {
+      text-align: center;
+      padding: 15px;
+      font-size: 13px;
+      color: #555;
+      background: #f4f4f4;
+      border-top: 2px solid #005526;
+      margin-top: 40px;
+    }
+
+    .sidebar {
+      position: absolute;
+      top: 0;
+      left: -250px;
+      width: 250px;
+      height: 100%;
+      background: #ffffff;
+      box-shadow: 2px 0 5px rgba(0,0,0,0.3);
+      padding-top: 60px;
+      transition: left 0.3s ease;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+    }
+    .sidebar a {
+      padding: 15px 20px;
+      text-decoration: none;
+      color: #000;
+      font-weight: 500;
+      border-bottom: 1px solid #ddd;
+    }
+    .sidebar a:hover {
+      background: #f0f0f0;
+    }
+    .sidebar.active {
+      left: 0;
+    }
+    
+    .menu-toggle {
+      position: absolute;
+      top: 20px;
+      left: 15px;
+      width: 30px;
+      height: 22px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      cursor: pointer;
+      z-index: 1100;
+      transition: left 0.3s ease;
+    }
+    .menu-toggle div {
+      width: 100%;
+      height: 3px;
+      background-color: #000000;
+      border-radius: 2px;
+      transition: all 0.3s ease;
+    }
+    .menu-toggle.active div:nth-child(1) {
+      transform: rotate(45deg) translate(5px, 5px);
+    }
+    .menu-toggle.active div:nth-child(2) {
+      opacity: 0;
+    }
+    .menu-toggle.active div:nth-child(3) {
+      transform: rotate(-45deg) translate(5px, -5px);
+    }
+    .sidebar.active ~ .menu-toggle {
+      left: 265px;
+    }
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.4);
+      display: none;
+      z-index: 900;
+    }
+    .overlay.active {
+      display: block;
+    }
+
+    .table-wrapper {
+      width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    @media (max-width: 600px) {
+      th, td {
+        font-size: 13px;
+        padding: 8px;
+      }
+      .container {
+        padding: 15px;
+      }
+    }
+    
+  </style>
+</head>
+<body>
+
+  <header> Pajak Tahunan Desa Bungko</header>
+
+  <div class="menu-toggle" onclick="toggleSidebar()">
+    <div></div>
+    <div></div>
+    <div></div>
+  </div>
+
+  <div id="sidebar" class="sidebar">
+    <a href="data.html">⦿ Halaman Peta</a>
+    <a href="table.html">≣ Halaman Tabel</a>
+    <a href="bumdes.html">⌂ Produk BUMDes</a>
+    <a href="pajak.html">⚖ Pajak</a>
+    <a href="tentang.html">ⓘ Tentang</a>
+    <a href="#" onclick="logout()">⏻ Logout</a>
+  </div>
+
+  <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+  <div class="container" id="laporan">
+    <h2>Perhitungan Pajak Rumah, Tanah, dan Sampah Tahun <span id="tahun"></span></h2>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>No</th>
+            <th>Nama Rumah</th>
+            <th>Jumlah Anggota</th>
+            <th>Pajak Rumah (Rp)</th>
+            <th>Pajak Tanah (Rp)</th>
+            <th>Pajak Sampah (Rp)</th>
+            <th>Total Pajak (Rp)</th>
+            <th>Tahun</th>
+          </tr>
+        </thead>
+        <tbody id="tabelPajak"></tbody>
+      </table>
+    </div>
+
+    <div class="total" id="totalPajak"></div>
+
+    <h2 style="margin-top:50px;">Data Pajak Tanah & Perusahaan</h2>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>No</th>
+            <th>Pemilik Tanah</th>
+            <th>Jenis Tanah</th>
+            <th>Luas (m²)</th>
+            <th>Pajak/m² (Rp)</th>
+            <th>Total Pajak (Rp)</th>
+            <th>Tahun</th>
+          </tr>
+        </thead>
+        <tbody id="tabelTanah"></tbody>
+      </table>
+    </div>
+
+    <div class="total" id="totalPajakTanah"></div>
+
+    <div style="text-align:center;">
+      <button onclick="window.print()" class="print-btn">🖨️ Cetak Laporan</button>
+    </div>
+  </div>
+
+  <footer>© Pemerintah Desa Bungko — Sistem Pajak Tahunan Otomatis</footer>
+
+  <script>
+    const PAJAK_RUMAH_DASAR = 20000;
+    const PAJAK_PER_ANGGOTA = 5000;
+    const PAJAK_TANAH_PER_M2 = 100;
+    const PAJAK_SAMPAH_PER_RUMAH = 15000;
+    const TAHUN = new Date().getFullYear();
+
+    document.getElementById("tahun").innerText = TAHUN;
+
+    async function ambilDataRumah() {
+      try {
+        const response = await fetch("data.html");
+        const text = await response.text();
+        const match = text.match(/var\\s+dataRumah\\s*=\\s*(\\[.*?\\]);/s);
+        if (!match) throw new Error("Data rumah tidak ditemukan di data.html");
+        const dataRumah = eval(match[1]);
+        tampilkanPajak(dataRumah, false);
+      } catch (err) {
+        console.warn("⚠ Gagal ambil data, menampilkan data contoh:", err.message);
+        const contoh = [
+          { namaRumah: "Rumah Pak Sangadi", anggota: [{},{},{}], luasTanah: 120 },
+          { namaRumah: "Rumah Ibu Rina", anggota: [{},{},{},{}], luasTanah: 90 },
+          { namaRumah: "Rumah Pak Sek", anggota: [{},{}], luasTanah: 75 },
+          { namaRumah: "Rumah Hj.Iseng", anggota: [{},{},{},{},{}], luasTanah: 140 },
+        ];
+        tampilkanPajak(contoh, true);
+      }
+    }
+
+    function tampilkanPajak(dataRumah, isDummy) {
+      const tbody = document.getElementById("tabelPajak");
+      const totalEl = document.getElementById("totalPajak");
+      let totalSemua = 0;
+      tbody.innerHTML = "";
+
+      dataRumah.forEach((r, i) => {
+        const jumlahAnggota = r.anggota ? r.anggota.length : 0;
+        const luasTanah = r.luasTanah || 100;
+        const pajakRumah = PAJAK_RUMAH_DASAR + (jumlahAnggota * PAJAK_PER_ANGGOTA);
+        const pajakTanah = luasTanah * PAJAK_TANAH_PER_M2;
+        const pajakSampah = PAJAK_SAMPAH_PER_RUMAH;
+        const total = pajakRumah + pajakTanah + pajakSampah;
+        totalSemua += total;
+
+        tbody.innerHTML += `
+          <tr>
+            <td>${i + 1}</td>
+            <td>${r.namaRumah}</td>
+            <td>${jumlahAnggota}</td>
+            <td>${pajakRumah.toLocaleString("id-ID")}</td>
+            <td>${pajakTanah.toLocaleString("id-ID")}</td>
+            <td>${pajakSampah.toLocaleString("id-ID")}</td>
+            <td><b>${total.toLocaleString("id-ID")}</b></td>
+            <td>${TAHUN}</td>
+          </tr>
+        `;
+      });
+
+      totalEl.innerHTML = `Total Pajak Rumah & Sampah Tahun ${TAHUN}: <b>Rp${totalSemua.toLocaleString("id-ID")}</b>` +
+        (isDummy ? " <span style='color:#999'></span>" : "");
+    }
+
+    ambilDataRumah();
+
+    const dataTanah = [
+      { pemilik: "Rumah Makan", jenis: "Tanah ", luas: 1500, tarif: 120 },
+      { pemilik: "PT. Indaco Warna Dunia", jenis: "Perusahaan", luas: 3000, tarif: 250 },
+      { pemilik: "Desa Bungko", jenis: "Tanah Pemerintah", luas: 5000, tarif: 0 },
+      { pemilik: "Yasti", jenis: "Tanah Kebun", luas: 5000, tarif: 200000 },
+    ];
+
+    const tbodyTanah = document.getElementById("tabelTanah");
+    const totalTanahEl = document.getElementById("totalPajakTanah");
+    let totalTanahSemua = 0;
+
+    dataTanah.forEach((t, i) => {
+      const total = t.luas * t.tarif;
+      totalTanahSemua += total;
+
+      tbodyTanah.innerHTML += `
+        <tr>
+          <td>${i + 1}</td>
+          <td>${t.pemilik}</td>
+          <td>${t.jenis}</td>
+          <td>${t.luas.toLocaleString("id-ID")}</td>
+          <td>${t.tarif.toLocaleString("id-ID")}</td>
+          <td><b>${total.toLocaleString("id-ID")}</b></td>
+          <td>${TAHUN}</td>
+        </tr>
+      `;
+    });
+
+    totalTanahEl.innerHTML = `Total Pajak Tanah Tahun ${TAHUN}: <b>Rp${totalTanahSemua.toLocaleString("id-ID")}</b>`;
+  </script>
+
+  <script>
+  function toggleSidebar() {
+    const sidebar = document.getElementById("sidebar");
+    const overlay = document.getElementById("overlay");
+    const toggle = document.querySelector(".menu-toggle");
+
+    sidebar.classList.toggle("active");
+    overlay.classList.toggle("active");
+    toggle.classList.toggle("active");
+  }
+  function logout() {
+  sessionStorage.removeItem("userLoggedIn");
+  window.location.href = "index.html";
+}
+
+  </script>
+
+</body>
+</html>

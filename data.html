@@ -1,0 +1,1600 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <title>Peta Desa Bungko (dengan QR/Barcode)</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <style>
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background: rgb(255, 255, 255);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+
+.header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background:linear-gradient(green,rgb(0, 173, 0));
+  padding: 12px;
+  text-align: center;
+  border-bottom: 4px solid #000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  z-index: 900;
+}
+
+.header h1 {
+  font-size:21px;
+  font-weight: 700;
+  color: #000;
+}
+
+.header h4 {
+  font-size: 10px;
+  color: #000;
+}
+
+
+.menu-toggle {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  width: 35px;
+  height: 30px;
+  cursor: pointer;
+  z-index: 1200;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.menu-toggle div {
+  background-color: rgb(0, 0, 0);
+  height: 5px;
+  margin: 4px 0;
+  border-radius: 3px;
+  transition: 0.4s;
+}
+
+
+.sidebar {
+  height: 130%;
+  width: 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+  background: #fff;
+  box-shadow: 3px 0 10px rgba(0, 0, 0, 0.3);
+  overflow-x: hidden;
+  transition: 0.3s;
+  z-index: 1100;
+  padding-top: 60px;
+  border-right: 3px solid green;
+}
+.sidebar a {
+  display: block;
+  padding: 14px 25px;
+  text-decoration: none;
+  font-size: 17px;
+  color: #000;
+  font-weight: 600;
+  transition: 0.2s;
+}
+.sidebar a:hover {
+  background: grey;
+  color: white;
+}
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  display: none;
+  transition: opacity 0.3s;
+}
+
+
+#map {
+  height: 88vh;
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+  border: 2px solid #000;
+  border-radius: 0;
+}
+
+
+.topbar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 20px;
+  margin: 15px 0;
+  flex-wrap: wrap;
+}
+.searchbar {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex: 1;
+  max-width: 700px;
+}
+.searchbar input {
+  flex: 1;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: 2px solid #ccc;
+  font-size: 15px;
+  transition: 0.2s;
+}
+.searchbar input:focus {
+  border-color: green;
+  box-shadow: 0 0 8px rgba(0, 128, 0, 0.3);
+}
+.searchbar button {
+  padding: 12px 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  color: white;
+  transition: 0.2s;
+}
+.searchbar button:first-child {
+  background: rgb(0, 104, 0);
+}
+.searchbar button:last-child {
+  background: #444;
+}
+.searchbar button:hover {
+  opacity: 0.9;
+}
+.summary {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+.summary .card {
+  flex: 1;
+  min-width: 50px;
+  background:linear-gradient(green,rgb(0, 173, 0));
+  padding: 2px;
+  border-radius: 10px;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
+  text-align: center;
+}
+.summary .card h4 {
+  margin-bottom: 6px;
+  font-size: 15px;
+  color: #030303;
+}
+.summary .card p {
+  font-size: 20px;
+  font-weight: 700;
+  color: #000;
+}
+.modal-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  justify-content: center;
+  align-items: center;
+  z-index: 3000;
+}
+.modal-backdrop.active {
+  display: flex;
+}
+.modal {
+  background: #fff;
+  border-radius: 10px;
+  width: 95%;
+  max-width: 420px;
+  margin: auto;
+  padding: 0;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+  border: 2px solid green;
+  animation: fadeIn 0.3s ease;
+}
+.modal .header {
+  background: linear-gradient(135deg, rgb(0, 204, 17), rgb(0, 114, 0));
+  color: rgb(0, 0, 0);
+  padding: 5px;
+  text-align: center;
+  font-weight: bold;
+  font-size: 16px;
+}
+.modal .close-btn {
+  background: rgb(128, 0, 0);
+  color: white;
+  border: none;
+  padding: 3px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+}
+.modal .modal-content {
+  display: flex;
+  flex-direction: column;
+  padding: 5px;
+  gap: 5px;
+  text-align: center;
+}
+.modal-left img {
+  width: 50%;
+  max-width: 100px;
+  border-radius: 10px;
+  object-fit: cover;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+}
+
+.modal-right {
+  width: 100%;
+  max-height: 300px; 
+  overflow-x: auto;  
+  overflow-y: auto;  
+  -webkit-overflow-scrolling: touch;
+  padding-right: 4px; 
+}
+
+
+.modal-right table {
+  width: 50%;
+  border-collapse: collapse;
+  min-width: 300px;
+  background: #fff;
+}
+
+.modal-right th {
+  background: linear-gradient(green, rgb(0, 173, 0));
+  color: #fff;
+  padding: 6px;
+  text-align: center;
+  border: 1px solid #ddd;
+}
+
+.modal-right td {
+  border: 1px solid #ddd;
+  padding: 6px;
+  text-align: center;
+}
+
+/* Biar teks gak turun baris di HP */
+@media (max-width: 600px) {
+  .modal-right table {
+    font-size: 11px;
+    min-width: 550px;
+  }
+  .modal-right th, .modal-right td {
+    white-space: nowrap;
+  }
+}
+
+.modal-right th {
+  background: #00701a;
+  color: white;
+  padding: 6px;
+}
+.modal-right td {
+  border: 1px solid #ddd;
+  padding: 5px;
+}
+.modal-right tbody tr:nth-child(even) {
+  background: #f9f9f9;
+}
+.qr-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin-top: 5px;
+}
+.qr-area small {
+  font-size: 5px;
+  color: #555;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (max-width: 480px) {
+  .modal {
+    width: 94%;
+    max-width: 360px;
+  }
+  .modal-right table {
+    font-size: 11px;
+  }
+  .modal-left img {
+    max-width: 200px;
+  }
+  .modal .header {
+    font-size: 14px;
+    padding: 8px;
+  }
+  .summary {
+    gap: 10px;
+  }
+  .summary .card {
+    min-width: 150px;
+  }
+
+.leaflet-popup-content {
+  overflow-x: auto !important;
+  max-height: 400px;
+  font-size: 13px;
+  color: #000;
+}
+
+.leaflet-popup-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 6px;
+  background: white;
+  border: 1px solid #ccc;
+  font-size: 12px;
+}
+
+.leaflet-popup-content th,
+.leaflet-popup-content td {
+  border: 1px solid #ccc;
+  padding: 4px 6px;
+  text-align: left;
+}
+
+.leaflet-popup-content th {
+  background: linear-gradient(green, limegreen);
+  color: #fff;
+  text-align: center;
+}
+
+.leaflet-popup-content tr:nth-child(even) {
+  background: #f8f8f8;
+}
+
+.leaflet-popup-content img {
+  max-width: 100%;
+  border-radius: 6px;
+}
+
+.leaflet-popup-content button {
+  background: linear-gradient(green, limegreen);
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 5px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  margin-top: 8px;
+}
+.leaflet-popup-content button:hover {
+  filter: brightness(0.9);
+}
+
+
+}
+
+
+
+</style>
+</head>
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+
+<body>
+
+  <script>
+    if (sessionStorage.getItem("userLoggedIn") !== "true") {
+      sessionStorage.setItem("redirectAfterLogin", window.location.href);
+      window.location.href = "index.html";
+    }
+    
+  </script>
+  <div class="header">
+    <h1>Peta Desa Bungko, Kota Kotamobagu Selatan</h1>
+    <h4>Luas wilayah : 12,34 km² — Jumlah Penduduk : 1830 jiwa</h4>
+  </div>
+  <div class="container">
+    <div class="topbar">
+      <div class="searchbar">
+        <input type="text" id="cariRumah" placeholder="Cari nama rumah atau anggota..." />
+        <button onclick="cariRumah()" style="background:green;">Cari</button>
+        <button onclick="resetCari()" style="background:#666; margin-left:2px;">Reset</button>
+      </div>
+    </div>
+
+    <div class="menu-toggle" onclick="toggleSidebar()">
+    <div></div>
+    <div></div>
+    <div></div>
+  </div>
+
+  <div id="sidebar" class="sidebar">
+     <a href="data.html">⦿ Halaman Peta</a>
+    <a href="table.html">≣ Halaman Tabel</a>
+    <a href="bumdes.html">⌂ Produk BUMDes</a>
+    <a href="pajak.html">⚖ Pajak</a>
+    <a href="tentang.html">ⓘ Tentang</a>
+    <a href="#" onclick="logout()">⏻ Logout</a>
+  </div>
+
+  
+  <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+ 
+
+  <div id="map"></div>
+
+  <div class="summary">
+    <div class="card">
+      <h4>Jumlah Rumah</h4>
+      <p id="jumlahRumah">-</p>
+    </div>
+    <div class="card">
+      <h4>Total Anggota</h4>
+      <p id="totalAnggota">-</p>
+    </div>
+    <div class="card">
+      <h4>Marker Tampil</h4>
+      <p id="markerTampil">-</p>
+    </div>
+  </div>
+ 
+  <div id="modalBackdrop" class="modal-backdrop" onclick="if(event.target===this) closeModal()">
+    <div class="modal" role="dialog" aria-modal="true">
+      <div class="header">
+        <strong id="modalTitle">Detail Rumah</strong>
+        <div>
+          <button class="close-btn" onclick="closeModal()">Tutup</button>
+        </div>
+      </div>
+      <div id="modalBody"></div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script>
+
+    var map = L.map('map').setView([0.70373491000055, 124.2983457910009], 15);
+
+    var petaJalan = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '© OpenStreetMap contributors'
+    });
+
+    var petaSatelit = L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+      maxZoom: 21,
+      subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
+    });
+
+    petaJalan.addTo(map);
+    var baseMaps = { "🗺 Peta Jalan": petaJalan, "🛰 Peta Satelit": petaSatelit };
+    L.control.layers(baseMaps, null, {position: 'topleft'}).addTo(map);
+
+  
+    var batasBungko = [
+   [0.7038142804579403, 124.3058591964427],
+  [0.7039071652608588, 124.3058047890969],
+  [0.7040104057755066, 124.3055936210711],
+  [0.7041435247225295, 124.3050469527106],
+  [0.7044386289430402, 124.304856802298],
+  [0.7045611947045142, 124.3044640550586],
+  [0.7045669737400655, 124.304152880551],
+  [0.7045169567819680, 124.303806709715],
+  [0.7044404643752693, 124.3034275997823],
+  [0.7043747183932619, 124.303226063409],
+  [0.7043484144178768, 124.3029690928308],
+  [0.7043269925844770, 124.3025415176348],
+  [0.7044174482475979, 124.3017224473418],
+  [0.7043435081188942, 124.3011634793513],
+  [0.7042594709072850, 124.3006418387701],
+  [0.7044255227125157, 124.3001573349437],
+  [0.7051582444459996, 124.3001176175324],
+  [0.7053545545981982, 124.299925686658],
+  [0.7054601654449676, 124.2996752560495],
+  [0.7055668562336679, 124.2993861053781],
+  [0.7056510152126216, 124.2992458134975],
+  [0.7057898190945934, 124.2993201024788],
+  [0.7058816700568776, 124.2993745430747],
+  [0.7059121120433748, 124.2993113914821],
+  [0.7060717479634124, 124.2989887521018],
+  [0.7062126847027768, 124.2986618097765],
+  [0.7064637275101437, 124.2979540751879],
+  [0.7068801956994264, 124.2976513035959],
+  [0.7069806900767012, 124.2975719380866],
+  [0.7070905062303445, 124.2976634207009],
+  [0.7071431374167066, 124.297635030807],
+  [0.7073589129355761, 124.2974268541637],
+  [0.7069708930304872, 124.2970935807735],
+  [0.7066299348096312, 124.2969310120872],
+  [0.7057370365650740, 124.2964770697109],
+  [0.7055683732156556, 124.2966913533559],
+  [0.7053156065900416, 124.2968245238963],
+  [0.7048609259499987, 124.2970733919681],
+  [0.7046864408459701, 124.2968724181858],
+  [0.7045424915351229, 124.296790295415],
+  [0.7044062843133062, 124.2967804099467],
+  [0.7036194367641956, 124.2966467771251],
+  [0.7028417995386055, 124.2965369858148],
+  [0.7026824468109325, 124.296102677264],
+  [0.7025721059583263, 124.295895410187],
+  [0.7022697579188684, 124.2958642690784],
+  [0.7018389489663660, 124.2956054221573],
+  [0.7009334143212668, 124.2956729468567],
+  [0.7038142804579403, 124.3058591964427]
+    ];
+
+    var polygon = L.polygon(batasBungko, { color:"#ff3c3c", weight:3, dashArray:"10,6", fillColor:"rgba(255,0,0,0.12)" }).addTo(map);
+    polygon.bindPopup('<b>Desa Bungko</b><br>Kecamatan Kotamobagu Selatan<br><i>Wilayah batas indikatif</i>');
+
+   
+    var dataRumah = [
+      {
+        namaRumah: "Kantor Desa Bungko",
+        anggota:[
+          {nama:"Aminulah Paputungan",jk:"L",tgllahir:"",status:"Sangadi"},
+          {nama:"vicky Agustian Potabuga",jk:"L",tgllahir:"",status:"Sekdes"},
+          {nama:"Sutami Kobandaha",jk:"L",tgllahir:"",status:"Kasih Pemerintahan"},
+          {nama:"Ariyanto Pinuyut,S.Pd",jk:"L",tgllahir:"",status:"Kasi Pelayanan"},
+          {nama:"Asri Paputungan",jk:"L",tgllahir:"",status:"Kasih Kesejahteraan"},
+          {nama:"Lendi Pobela",jk:"L",tgllahir:"",status:"Kepala Dusun I"},
+          {nama:"Yanti L.Paputungan",jk:"P",tgllahir:"",status:"Kaur Keuangan"},
+          {nama:"Rasmin Mokoagow",jk:"P",tgllahir:"",status:"Kaur Tata Usaha & Umum"},
+          {nama:"Ika Suryawati Warsino,SE",jk:"P",tgllahir:"",status:"Kaur Perencanaan"},
+          {nama:"Hartati Paputungan",jk:"P",tgllahir:"",status:"Kepala Dusun II"},
+          {nama:"Naija Paputungan",jk:"P",tgllahir:"",status:"Kepala Dusun III"},
+        ],
+        koordinat: [0.7036313, 124.2983250],
+        foto: "kantordesa.webp"
+      },
+      {
+        namaRumah: "Balai desa mopoyotantan desa bungko ",
+        koordinat: [0.7044886, 124.2976199],
+        foto:""
+      },
+      {
+        namaRumah: "posyandu",
+        koordinat:[0.7044480, 124.2979642],
+        foto:"posyandu.webp"
+      },
+      {
+        namaRumah: "polsek bungko",
+        koordinat:[0.7033792, 124.2995568],
+        foto:"polsek.webp"
+      },
+      {
+        namaRumah: "MASJID jami AL-HIKMAH BUNGKO",
+        koordinat: [0.7035724660992296, 124.30080344469414],
+        foto : "masjid.webp"
+      },
+      {
+        namaRumah: "MASJID HIDAYAHTULLAH",
+        koordinat: [0.7044390, 124.2977691],
+        foto:""
+      },
+      {
+        namaRumah:"MASJID AN-NISSA BUNGKO",
+        koordinat:[0.7034692109015724, 124.30326202761297],
+        foto:"masjidanisa.webp"
+      },
+      {
+        namaRumah: "sekolah (SMK Negeri 2 Kotamobagu) ",
+        koordinat: [0.7025010507789025, 124.30170276076322],
+        foto:"smk2.webp"
+      },
+      {
+        namaRumah: "sekolah (SDN BUNGKO)",
+        anggota: [""],
+        koordinat: [0.7046334, 124.29820066],
+        foto : "sd.webp"
+      },
+      {
+        namaRumah:"TK BUNGKO ",
+        anggota:[""],
+        koordinat:[0.7042352557475215, 124.29813138620258],
+        foto:"tk.webp"
+      },
+      {
+        namaRumah:"PBI(pasar benih ikan)",
+        anggota:[""],
+        koordinat:[0.7031745894737893, 124.29764730032011],
+        foto:""
+      },
+      {
+        namaRumah:"Lapangan dusun 1",
+        anggota:[""],
+        koordinat:[0.7041189364695619, 124.29759178501176],
+        foto:"lapangandusun1.webp"
+      },
+      {
+        namaRumah:"Lapangan dusun 2",
+        anggota:[""],
+        koordinat:[0.702517189216145, 124.29974125637806],
+        foto:"lapangandusun2.webp"
+      },
+      {
+        namaRumah: " Rumah Pak Sangadi ",
+        anggota: [
+          {nama:"Aminulah Paputungan",jk:"L",tgllahir:"1980-04-12",status:"keppala keluarga"}],
+        koordinat: [0.7031633, 124.3006699],
+        foto:"rumahsangadi.webp"
+      },
+      {
+        namaRumah: "Rumah Pak Mul",
+        anggota: ["orang rumah"],
+        koordinat: [0.7057478, 124.2982368],
+        foto:"rumahbos.webp"
+      },
+      {
+        namaRumah: "Rumah Papa Putra (konter Natha cell)",
+        anggota: [
+          {nama:"Yudi S.Paputungan",jk:"L",tgllahir:"1982-07-03",status:"kepala keluarga"},
+          {nama:"Nuryanti",jk:"P",tgllahir:"1982-02-03",status:"istri"},
+          {nama:"Putra A.Paputungan",jk:"L",tgllahir:"2004-04-14",status:"anak"},
+          {nama:"Nadhira Thafana Paputungan",jk:"P",tgllahir:"2013-11-20",status:"anak"}
+        ],
+        koordinat: [0.7030943, 124.3011132],
+        foto:"rumahputra.webp"
+      },
+      {
+        namaRumah: "Rumah Rasid",
+        anggota: [
+          {nama:"Rasid Pokoba",Jk:"L",tgllahir:"",status:"Kepala Keluarga"},
+          {nama:"",Jk:"P",tgllahir:"",status:"Istri"},
+          {nama:"Hari Bonde",Jk:"L",tgllahir:"",status:"Anak"},
+          {nama:"Ital Bonde",Jk:"L",tgllahir:"",status:"Anak"}
+        ],
+        koordinat: [0.7018155312564791, 124.29780888736126],
+        foto:""
+      },
+      {
+        namaRumah: "(umkm) Rumah keripik azzahra kotamobagu",
+        anggota: ["Owner keripik"],
+        koordinat: [0.7034731, 124.2991276],
+        foto:"keripikazzahra.webp"
+      },
+      {
+        namaRumah: "Rumah Pak Sek",
+        anggota: ["orang rumah"],
+        koordinat:[0.7037844371818668, 124.29962352537044],
+        foto:"rumahsek.webp"
+      },
+      {
+        namaRumah:"warung GEZZA",
+        anggota:[""],
+        koordinat:[0.7036792904067536, 124.29957954050504]
+      },
+      {
+        namaRumah: "Rumah Pak Pikoli ",
+        anggota: ["orang rumah"],
+        koordinat: [0.7039193, 124.2984112],
+        foto:"pakpikoli.webp"
+      },
+      {
+        namaRumah: "Rumah papa Yubi ",
+        anggota: ["orang rumah"],
+        koordinat: [0.7040212, 124.2987649],
+        foto:""
+      },
+      {
+        namaRumah: "Rumah papa dwi",
+        anggota: ["orang rumah"],
+        koordinat: [0.7049546, 124.2992286],
+        foto:""
+      },
+      {
+        namaRumah: "Rumah papa Lenda",
+        anggota: ["orang rumah"],
+        koordinat: [0.7054176, 124.2990941]
+      },
+      {
+        namaRumah: "Rumah papa opan",
+        anggota: ["orang rumah"],
+        koordinat: [0.7025683, 124.3012855]
+      },
+      {
+        namaRumah: "bengkel crt",
+        anggota: ["orang rumah"],
+        koordinat: [0.7032227, 124.3017492],
+        foto:""
+      },
+      {
+        namaRumah: "rumah papa Egi",
+        anggota: ["orang"],
+        koordinat: [0.7026420, 124.3019386],
+        foto:"rumahegi.webp"
+      },
+      {
+        namaRumah: "rumah papa wayan",
+        anggota:[""],
+        koordinat:[0.7043263, 124.2994814],
+        foto:"rumahpapawayan.webp"
+      },
+      {
+        namaRumah: "rumah papa yuyun",
+        anggota:[""],
+        koordinat:[0.7026551, 124.3011101],
+        foto:"rumahpapayuyun.webp"
+      },
+      {
+        namaRumah: "butik arfa",
+        anggota:[""],
+        koordinat:[0.6934471, 124.3010702],
+        foto:"butikarfa.webp"
+      },
+      {
+        namaRumah: "rumah tete bowo",
+        anggota:[""],
+        koordinat:[0.7040697190694611, 124.30305570566017],
+        foto:"tetebowo.webp"
+      },
+      {
+        namaRumah: "rumah papa reji",
+        anggota:[""],
+        koordinat:[0.7048537, 124.2987682],
+        
+      },
+      {
+        namaRumah: "rumah papa gito",
+        anggota:[""],
+        koordinat:[0.7034828, 124.3025699],
+        foto:"rumahpapagito.webp"
+      },
+      {
+        namaRumah:"kios dinda",
+        anggota:[""],
+        koordinat:[0.7029944, 124.3018199],
+        foto:"kiosdinda.webp"
+      },
+      {
+        namaRumah:"rumah papa celsi",
+        anggota:[""],
+        koordinat:[0.7035345, 124.2988105],
+        foto:"rumahpapacelsi.webp"
+      },
+      {
+        namaRumah:"rumah papa yoga",
+        anggota:[""],
+        koordinat:[0.7033933, 124.2994022],
+        foto:"rumahpapayoga.webp"
+      },
+      {
+        namaRumah:"rumah papa linda",
+        anggota:[""],
+        koordinat:[0.7030041, 124.3012992],
+        foto:"rumahpapalinda.webp"
+      },
+      {
+        namaRumah:"rumah papa Bagas",
+        anggota:[""],
+        koordinat:[0.7031141, 124.3008798],
+        foto:""
+      },
+      {
+        namaRumah:"rumah papa Ucan",
+        anggota:[""],
+        koordinat:[0.7032002, 124.3008838],
+        
+      },
+      {
+        namaRumah:"rumah papa Ciko",
+        anggota:[""],
+        koordinat:[0.7031724, 124.3007582],
+        foto:"rumahpapaciko.webp"
+      },
+      {
+        namaRumah:"rumah tete Ayu",
+        anggota:[""],
+        koordinat:[0.7032763, 124.2996668],
+        foto:"rumahteteayu.webp"
+      },
+      {
+        namaRumah:"rumah papa ely",
+        anggota:[""],
+        koordinat:[0.7039693, 124.2981936],
+        foto:"rumahpapaely.webp"
+      },
+      {
+        namaRumah:"kios andes",
+        anggota:[""],
+        koordinat:[0.7033704485293649, 124.3010779289962],
+        foto:"kiosandes.webp"
+      },
+      {
+        namaRumah:"rumah papa Yanda",
+        anggota:[""],
+        koordinat:[0.7030667099454074, 124.30006971649073],
+       
+      },
+      {
+        namaRumah:"rumah papa Caca",
+        anggota:[""],
+        koordinat:[0.7034645145011326, 124.30056520663223],
+        foto:"rumahpapacaca.webp"
+      },
+      {
+        namaRumah:"rumah papa Kadri",
+        anggota:[""],
+        koordinat:[0.7032940776906247, 124.30138651338945],
+        foto:"rumahpapakadri.webp"
+      },
+      {
+        namaRumah:"rumah papa Titi",
+        anggota:[""],
+        koordinat:[0.7039751783409907, 124.30296652221449],
+        foto:"rumahpapatiti.webp"
+      },
+      {
+        namaRumah:"rumah papa Yovan",
+        anggota:[""],
+        koordinat:[0.7039108295736045, 124.2986263249913],
+        foto:"rumahpapayovan.webp"
+      },
+      {
+        namaRumah:"Warung Papa Syifa",
+        anggota:[""],
+        koordinat:[0.7033785852396237, 124.29996756787135],
+        foto:"rumahpapasyifa.webp"
+      },
+      {
+        namaRumah:"Rumah Tete Syifa",
+        anggota:[""],
+        koordinat:[0.7032873970056921, 124.29992398197555],
+        foto:"rumahpapasyifa.webp"
+      },
+      {
+        namaRumah:"Rumah Tete Nayla",
+        anggota:[""],
+        koordinat:[0.7033196755590647, 124.30021330207555],
+        foto:"rumahtetenayla.webp"
+      },
+      {
+        namaRumah:"Rumah Mama Doan",
+        anggota:[""],
+        koordinat:[0.703739409624358, 124.30061764508412],
+        foto:"rumahmamadoan.webp"
+      },
+      {
+        namaRumah:"Rumah Papa Ari",
+        anggota:[""],
+        koordinat:[0.7027039110720978, 124.30309267834218],
+        foto:"rumahpapaari.webp"
+      },
+      {
+        namaRumah:"Rumah Hj.Iseng",
+        anggota:[""],
+        koordinat:[0.703018692639616, 124.30117660823652],
+        foto:"hjiseng.webp"
+      },
+      {
+        namaRumah:"Rumah papa flo",
+        anggota:[""],
+        koordinat:[0.7036569045018884, 124.29969895530176],
+        foto:"rumahpapaflo.webp"
+      },
+      {
+        namaRumah:"Rumah papa Wandi",
+        anggota:[""],
+        koordinat:[0.7028412609321533, 124.30097813033777],
+        foto:"rumahpapawandi.webp"
+      },
+      {
+        namaRumah:"Rumah papa Teys",
+        anggota:[""],
+        koordinat:[0.7027490677037418, 124.30144203795753],
+        foto:"rumahpapateys.webp"
+      },
+      {
+        namaRumah:"Rumah papa Anita",
+        anggota:[""],
+        koordinat:[0.7026959987609002, 124.30300462246038],
+        foto:"rumahpapaanita.webp"
+      },
+      {
+        namaRumah:"Rumah papa Yayan",
+        anggota:[""],
+        koordinat:[0.7026782574892199, 124.30289564678816],
+        foto:"rumahpapayayan1.webp"
+      },
+      {
+        namaRumah:"Rumah Mama Aci",
+        anggota:[""],
+        koordinat:[0.7027630298095237, 124.30466104003146],
+      },
+      {
+        namaRumah:"Rumah papa Eyi",
+        anggota:[""],
+        koordinat:[0.7031678228900006, 124.30245272861247],
+        foto:"rumahpapaeyi.webp"
+      },
+      {
+        namaRumah:"Rumah papa Ayu",
+        anggota:[""],
+        koordinat:[0.7027193416394545, 124.30373431833483],
+        foto:"rumahpapaayu.webp"
+      },
+      {
+        namaRumah:"Rumah Mama Yeli",
+        anggota:[""],
+        koordinat:[0.7029319047952205, 124.30208706996248],
+        foto:"rumahmamayeli.webp"
+      },
+      {
+        namaRumah:"Rumah Papa Indah",
+        anggota:[""],
+        koordinat:[0.7032458855062325, 124.30195116592441],
+        foto:"rumahpapaindah.webp"
+      },
+      {
+        namaRumah:"Rumah Papa ika",
+        anggota:[""],
+        koordinat:[0.7017745800474634, 124.30214159579269],
+        foto:"rumahpapaika.webp"
+      },
+      {
+        namaRumah:"Rumah papa diki",
+        anggota:[""],
+        koordinat:[0.701528380600395, 124.30212668444757],
+        foto:"rumahpapadiki.webp"
+      },
+      {
+        namaRumah:"Rumah Papa Deden",
+        anggota:[""],
+        koordinat:[0.7030015268793565, 124.30031982658963],
+        foto:""
+      },
+      {
+        namaRumah:"Rumah Papa Angga",
+        anggota:[""],
+        koordinat:[0.7043381529788637, 124.29938347600118],
+        foto:"rumahpapaangga.webp"
+      },
+      {
+        namaRumah:"Rumah Papa Tiara",
+        anggota:[""],
+        koordinat:[0.7044418888736474, 124.29929355303135],
+        foto:"rumahpapatiara.webp"
+      },
+      {
+        namaRumah:"Rumah Papa Bayu",
+        anggota:[""],
+        koordinat:[0.7041624902386011, 124.29946873073413],
+        foto:"rumahpapabayu.webp" 
+      },
+      {
+        namaRumah:"Rumah Mama Rama",
+        anggota:[""],
+        koordinat:[0.7034311821472486, 124.29923681131328], 
+        foto:"rumahmamarama.webp"
+      },
+      {
+        namaRumah:"Rumah Opan",
+        anggota:[""],
+        koordinat:[0.702601980658287, 124.30118698951523],
+      },
+      {
+        namaRumah:"Rumah Papa Rido",
+        anggota:[""],
+        koordinat:[0.7026810998729133, 124.30124063369419],
+        foto:"rumahpaparido.webp"
+      },
+      {
+        namaRumah:"Rumah Papa Zaki",
+        anggota:[""],
+        koordinat:[0.703715177168857, 124.29976742153947],
+        foto:"rumahpapazaki.webp"
+      },
+      {
+        namaRumah:"Rumah Papa Toto",
+        anggota:[""],
+        koordinat:[0.7033075121316219, 124.29983917062864], 
+        foto:"rumahpapatoto.webp"
+      },
+      {
+        namaRumah:"Rumah Papa Ica",
+        anggota:[""],
+        koordinat:[0.7030875875562324, 124.29979357307668],
+        foto:"rumahpapaica.webp" 
+      },
+      {
+        namaRumah:"Rumah Papa Aira",
+        anggota:[""],
+        koordinat:[0.7030705164140142, 124.29970418412367],
+        foto:"rumahpapaaira.webp"
+      },
+      {
+        namaRumah:"Rumah Tete Sundari",
+        anggota:[""],
+        koordinat:[0.7031014849287828, 124.30281383749063],
+        foto:"rumahtetesundari.webp"
+      },
+      {
+        namaRumah:"Rumah Papa Lam",
+        anggota:[""],
+        koordinat:[0.7030149477755799, 124.30089960731529],
+      },
+      {
+        namaRumah:"Rumah Papa Kurni",
+        anggota:[""],
+        koordinat:[0.7033219537801672, 124.30163655191919],
+        foto:"rumahpapakurni.webp"
+      },
+      {
+        namaRumah:"Rumah Nene Nia",
+        anggota:[""],
+        koordinat:[0.7033367475489389, 124.30157262897164],
+        foto:"rumahnenenia.webp"
+      },
+      {
+        namaRumah:"Warung Berkah",
+        anggota:[""],
+        koordinat:[0.7035465544925682, 124.30018185536204],
+        foto:"warungberkah.webp"
+      },
+      {
+        namaRumah:"Rumah Papa Candra",
+        anggota:[""],
+        koordinat:[0.7034980044136652, 124.30037019723649],
+        foto:"rumahpapacandra.webp"
+      },
+      {
+        namaRumah:"Rumah Papa Uji",
+        anggota:[""],
+        koordinat:[0.7030272703070138, 124.30326828600674],
+        foto:"rumahpapauji.webp"
+      },
+      {
+        namaRumah:"Rumah Papa Randa",
+        anggota:[""],
+        koordinat:[0.7043009724538941, 124.29681602980291],
+        foto:"rumahpaparanda.webp"
+      },
+      {
+        namaRumah:"Rumah Papa Andi",
+        anggota:[""],
+        koordinat:[0.704135315764193, 124.30261056242789],
+        foto:"rumahpapaandi.webp"
+      },
+      {
+        namaRumah:"rumah mama Ne'(nene yuda)",
+        anggota:[""],
+        koordinat:[0.7031147036349951, 124.30100046464074],
+        foto:"rumahmade.webp"
+      },
+      {
+        namaRumah:"Rumah mama Ranti(nene Aira)",
+        anggota:[""],
+        koordinat:[0.7031388417006659, 124.30080734558949],
+      
+      },
+      {
+        namaRumah:"Rumah Mama Cakra",
+        anggota:[""],
+        koordinat:[0.7036904760730378, 124.30105516361303],
+      },
+      {
+        namaRumah:"Rumah Papa Wendy",
+        anggota:[""],
+        koordinat:[0.703479637276035, 124.30093004104933], 
+        
+      },
+      {
+        namaRumah:"Rumah Tete Andes",
+        anggota:[""],
+        koordinat:[0.7034819541849083, 124.30104357819422],
+        foto:"rumahteteandes.webp"
+      },
+      {
+        namaRumah:"Rumah Papa Vira",
+        anggota:[""],
+        koordinat:[0.7037072415177313, 124.30125577425576],
+      },
+      {
+        namaRumah:"Rumah Papa Yayu",
+        anggota:[""],
+        koordinat:[0.7037137129760827, 124.30142521778319],
+      },
+      {
+        namaRumah:"Rumah Tete Nizar",
+        anggota:[""],
+        koordinat:[0.7033820764957583, 124.30119756456475],
+        foto:"rumahtetenizar.webp"
+      },
+      {
+        namaRumah:"Rumah Tete Caca",
+        anggota:[""],
+        koordinat:[0.703506506459228, 124.30146807785441], 
+      },
+      {
+        namaRumah:"Rumah Papa Hesti",
+        anggota:[""],
+        koordinat:[0.7028831121706651, 124.30080508072001], 
+        foto:"rumahpapahesti.webp"
+      },
+      {
+        namaRumah:"Rumah Tete Ingka",
+        anggota:[""],
+        koordinat:[0.7028924725973784, 124.30072702947449], 
+        foto:"rumahteteingka.webp"
+      },
+      {
+        namaRumah:"Rumah Bowo",
+        anggota:[""],
+        koordinat:[0.7027333911061934, 124.30156607200205], 
+        foto:"rumahbowo.webp"
+      },
+      {
+        namaRumah:"Rumah Papa Alfo",
+        anggota:[""],
+        koordinat:[0.7027056043299978, 124.30173638802867],
+        foto:"rumahpapaalfo.webp"
+      },
+      {
+        namaRumah:"Bengkel Papa Cinta ",
+        anggota:[""],
+        koordinat:[0.7021965586549528, 124.30234800268138],
+        foto:"bengkelrio.webp"
+      },
+      {
+        namaRumah:"Rumah Nene Cinta",
+        anggota:[""],
+        koordinat:[0.7022858526206919, 124.30226851527097],
+        foto:"rumahnenecinta.webp"
+      },
+      {
+        namaRumah:"Rumah Papa Ris",
+        anggota:[""],
+        koordinat:[0.7023455943678404, 124.30235676962867],
+        foto:"rumahpaparis.webp"
+      },
+      {
+        namaRumah:"Rumah Mama Novri",
+        anggota:[""],
+        koordinat:[0.7020264249498812, 124.30225773710777],
+        foto:"rumahmamanovri.webp"
+      },
+      {
+        namaRumah:"Rumah Papa Rio",
+        anggota:[""],
+        koordinat:[0.7028669625591671, 124.30251897894848],
+        foto:"rumahpapario.webp"
+      },
+      {
+        namaRumah:"Rumah Mama Edo",
+        anggota:[""],
+        koordinat:[0.7028363374583783, 124.30234412671163],
+        foto:""
+      },
+      {
+        namaRumah:"Rumah Papa Titin",
+        anggota:[""],
+        koordinat:[0.7028701737113571, 124.30227292423571],
+        foto:"rumahpapatitin.webp"
+      },
+      {
+        namaRumah:"PT.Indaco Warna Dunia",
+        anggota:[""],
+        koordinat:[0.7039577947681662, 124.30263220460627],
+      },
+      {
+        namaRumah:"Toko Kharisma Jaya",
+        anggota:[""],
+        koordinat:[0.7034554463039107, 124.30278469842838],
+      },
+      {
+        namaRumah:"Konter Wiwi",
+        anggota:[""],
+        koordinat:[0.703726244616061, 124.29809719785493],
+        foto:"konterwiwi.webp"
+      },
+      {
+        namaRumah:"Rumah Mama Jep",
+        anggota:[""],
+        koordinat:[0.7042290159213851, 124.2969330606373],
+        foto:"rumahmamajep.webp"
+      },
+      {
+        namaRumah:"Rumah Papa Yayan",
+        anggota:[""],
+        koordinat:[0.7038654825113124, 124.2968648951585],
+        foto:"rumahpapayayan2.webp"
+      },
+      {
+        namaRumah:"Rumah Papa Eka",
+        anggota:[""],
+        koordinat:[0.7038101109774624, 124.29693536190005],
+        foto:"rumahpapaeka.webp"
+      },
+      {
+        namaRumah:"Rumah Papa Azam",
+        anggota:[""],
+        koordinat:[0.7038509933739944, 124.29738936477017],
+      },
+      {
+        namaRumah:"Rumah Nene Rehan",
+        anggota:[""],
+        koordinat:[0.7037678511692598, 124.29737193041112],
+      },
+      {
+        namaRumah:"Rumah Papa Brayen",
+        anggota:[""],
+        koordinat:[0.7045696337329704, 124.29738435178585],
+      },
+      {
+        namaRumah:"Rumah Papa Eko",
+        anggota:[""],
+        koordinat:[0.7043185421784138, 124.29720005764283],
+      },
+      {
+        namaRumah:"Allaya Dessert n Cookies",
+        anggota:[""],
+        koordinat:[0.7047695260140737, 124.29852867032218],
+      },
+      {
+        namaRumah:"Abu'ATHAYA",
+        anggota:[""],
+        koordinat:[0.7047738842757636, 124.29840646683984],
+      },
+      {
+        namaRumah:"Rumah Papa Jaya",
+        anggota:[""],
+        koordinat:[0.7032674911435941, 124.29797028136248], 
+      },
+      {
+        namaRumah:"IBAY PHONE",
+        anggota:[""],
+        koordinat:[0.7035049599647287, 124.29782208055404],
+      },
+      {
+        namaRumah:"Bengkel Las Nunu",
+        anggota:[""],
+        koordinat:[0.7032721881171826, 124.30038912441715],
+      },
+      {
+        namaRumah:"RHYN Collection",
+        anggota:[""],
+        koordinat:[0.7037287180126776, 124.2990388157298],
+      },
+      {
+        namaRumah:"Rumah Papa Adit",
+        anggota:[""],
+        koordinat:[0.7037093316538828, 124.29939189127329]
+      },
+      
+    
+
+     
+    ];
+    
+    
+    dataRumah = dataRumah.map(function(r, idx){
+      r._id = 'R' + String(idx+1).padStart(3, '0');
+      return r;
+    });
+
+    function hitungUmur(tanggal) {
+  let tgl = new Date(tanggal);
+  let sekarang = new Date();
+  let umur = sekarang.getFullYear() - tgl.getFullYear();
+  let bulan = sekarang.getMonth() - tgl.getMonth();
+
+  if (bulan < 0 || (bulan === 0 && sekarang.getDate() < tgl.getDate())) {
+    umur--;
+  }
+  return umur;
+}
+
+    function fotoUrl(f){
+      if (!f || !f.trim() || f.trim() === ".jpeg") return 'noimg.png'; 
+      return f;
+    }
+
+    
+    var ikonMerah = L.icon({ iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png', shadowUrl: 'https://unpkg.com/leaflet/dist/images/marker-shadow.png', iconSize:[25,41], iconAnchor:[12,41], popupAnchor:[1,-34], shadowSize:[41,41]});
+    var ikonHijau = L.icon({ iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png', shadowUrl: 'https://unpkg.com/leaflet/dist/images/marker-shadow.png', iconSize:[25,41], iconAnchor:[12,41], popupAnchor:[1,-34], shadowSize:[41,41]});
+    var ikonKuning = L.icon({ iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-yellow.png', shadowUrl: 'https://unpkg.com/leaflet/dist/images/marker-shadow.png', iconSize:[25,41], iconAnchor:[12,41], popupAnchor:[1,-34], shadowSize:[41,41]});
+    var ikonBiru = L.icon({ iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png', shadowUrl: 'https://unpkg.com/leaflet/dist/images/marker-shadow.png', iconSize:[25,41], iconAnchor:[12,41], popupAnchor:[1,-34], shadowSize:[41,41]});
+    var ikonOranye = L.icon({ iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-orange.png', shadowUrl: 'https://unpkg.com/leaflet/dist/images/marker-shadow.png', iconSize:[25,41], iconAnchor:[12,41], popupAnchor:[1,-34], shadowSize:[41,41]});
+
+    function pilihIkon(nama){
+      if(!nama) return ikonBiru;
+      nama = nama.toLowerCase();
+      if (nama.includes("kantor") || nama.includes("polsek") || nama.includes("balai") || nama.includes("pasar") || nama.includes("lapangan")) return ikonMerah;
+      if (nama.includes("masjid")) return ikonHijau;
+      if (nama.includes("umkm") || nama.includes("kios") || nama.includes("konter") || nama.includes("warung") || nama.includes("toko") || nama.includes("pt") || nama.includes("bengkel") ||  nama.includes("cookies")|| nama.includes("abu'athaya") || nama.includes("phone") ||nama.includes("collection")) return ikonKuning;
+      if (nama.includes("sekolah") || nama.includes("tk") || nama.includes("sd") || nama.includes("smk")) return ikonOranye;
+      return ikonBiru;
+    }
+
+    
+   function baseUrlForHash(){
+  return 'https://desabungko.github.io/peta_bungko/data.html';
+}
+
+    function buatTabelPopupUntukAnggota(anggota){
+  if (!anggota || anggota.length === 0) 
+    return "<i>- tidak ada data anggota -</i>";
+
+  
+  if (Array.isArray(anggota) && typeof anggota[0] === "object") {
+    
+    var html = `
+      <table class="popup-table">
+        <thead>
+          <tr>
+            <th>No</th>
+            <th>Nama</th>
+            <th>JK</th>
+            <th>Tgl Lahir</th>
+            <th>Umur</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+
+    anggota.forEach(function(a, i) {
+      let umur = a.tgllahir ? hitungUmur(a.tgllahir) : "-";
+
+      html += `
+        <tr>
+          <td>${i+1}</td>
+          <td>${a.nama || '-'}</td>
+          <td>${a.jk || '-'}</td>
+          <td>${a.tgllahir || '-'}</td>
+          <td>${umur} tahun</td>
+          <td>${a.status || '-'}</td>
+        </tr>`;
+    });
+
+    html += "</tbody></table>";
+    return html;
+  }
+
+  var list = Array.isArray(anggota) ? anggota : anggota.split(",");
+  list = list.map(x => x.trim()).filter(x => x);
+
+  if (list.length === 0)
+    return "<i>- tidak ada data anggota -</i>";
+
+  var html2 = `
+    <table class="popup-table">
+      <thead><tr><th>No</th><th>Nama Anggota</th></tr></thead>
+      <tbody>
+  `;
+  list.forEach((n,i)=> html2 += `<tr><td>${i+1}</td><td>${n}</td></tr>`);
+
+  html2 += "</tbody></table>";
+  return html2;
+}
+
+var markers = [];
+var totalAnggota = 0;
+
+dataRumah.forEach(function(rumah, idx){
+  var ikon = pilihIkon(rumah.namaRumah || "");
+  var marker = L.marker(rumah.koordinat, { icon: ikon }).addTo(map);
+
+  
+  var popupQrId = 'qr_popup_' + rumah._id;
+  var fotoHtml = rumah.foto ? `<img class="popup-photo" src="${fotoUrl(rumah.foto)}" width="220">` : '';
+  var popupHtml = `
+    <div style="max-width:300px;">
+      <b>${rumah.namaRumah||'-'}</b><br>
+      <small>${(rumah.koordinat||[]).join(", ")}</small><br><br>
+      ${fotoHtml}
+      ${buatTabelPopupUntukAnggota(rumah.anggota)}
+      <div style="margin-top:8px; display:flex; gap:8px; justify-content:space-between; align-items:center;">
+        <div id="${popupQrId}"></div>
+        <div style="display:flex;gap:6px;">
+          <button onclick="lihatJalan(${rumah.koordinat[0]}, ${rumah.koordinat[1]})">Lihat Jalan</button>
+          <button onclick="openDetail('${rumah._id}')">Lihat Detail</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  marker.bindPopup(popupHtml, { maxWidth: 320, minWidth: 200 });
+
+  
+  marker.on('popupopen', function(){
+    var popupEl = document.getElementById(popupQrId);
+    if (popupEl && popupEl.childElementCount === 0) {
+      new QRCode(popupEl, { 
+        text: baseUrlForHash() + '#detail=' + rumah._id, 
+        width: 96, 
+        height: 96 
+      });
+      popupEl.style.cursor = 'pointer';
+      popupEl.addEventListener('click', function(){ openDetail(rumah._id); });
+    }
+  });
+
+  markers.push({ marker: marker, rumahIndex: idx });
+});
+
+
+document.getElementById("jumlahRumah").innerText = dataRumah.length;
+document.getElementById("totalAnggota").innerText = totalAnggota;
+document.getElementById("markerTampil").innerText = markers.length;
+
+    function lihatJalan(lat,lng){
+      var url = `https://www.google.com/maps?q=&layer=c&cbll=${lat},${lng}`;
+      window.open(url, "_blank");
+    }
+
+    
+    function highlightMarker(marker){
+      var originalIcon = marker.options.icon;
+      var blinking = L.divIcon({ className: 'blinking-marker', html: '<div style="width:18px;height:18px;background:red;border-radius:50%;animation: blink 1s infinite;"></div>' });
+      marker.setIcon(blinking);
+      setTimeout(function(){ marker.setIcon(originalIcon); }, 2000);
+    }
+
+    
+    function cariRumah(){
+      var input = document.getElementById("cariRumah").value.toLowerCase().trim();
+      
+      markers.forEach(m => map.removeLayer(m.marker));
+
+      if (!input){
+        
+        markers.forEach(m => m.marker.addTo(map));
+        document.getElementById("markerTampil").innerText = markers.length;
+        var group = L.featureGroup(markers.map(m => m.marker));
+        try { map.fitBounds(group.getBounds(), {padding:[40,40]}); } catch(e){}
+        return;
+      }
+
+      var hasil = [];
+      markers.forEach(function(m){
+        var rumah = dataRumah[m.rumahIndex];
+        var match = false;
+        if ((rumah.namaRumah||'').toLowerCase().includes(input)) match = true;
+
+        
+        if (!match && rumah.anggota) {
+          if (Array.isArray(rumah.anggota)) {
+            for (var i=0;i<rumah.anggota.length;i++){
+              var a = rumah.anggota[i];
+              if (!a) continue;
+              if (typeof a === "string" && a.toLowerCase().includes(input)) { match=true; break; }
+              if (typeof a === "object") {
+                
+                if ((a.nama && a.nama.toLowerCase().includes(input)) || (a.nik && a.nik.toLowerCase().includes(input))) { match=true; break; }
+              }
+            }
+          } else if (typeof rumah.anggota === "string") {
+            if (rumah.anggota.toLowerCase().includes(input)) match = true;
+          }
+        }
+
+        if (match) hasil.push(m);
+      });
+
+      if (hasil.length > 0){
+        hasil.forEach(m => { m.marker.addTo(map); highlightMarker(m.marker); });
+        document.getElementById("markerTampil").innerText = hasil.length;
+        var group = L.featureGroup(hasil.map(m => m.marker));
+        try { map.fitBounds(group.getBounds(), {padding:[40,40]}); } catch(e){}
+      } else {
+        alert("Data tidak ditemukan!");
+        
+        markers.forEach(m => m.marker.addTo(map));
+        document.getElementById("markerTampil").innerText = markers.length;
+      }
+    }
+
+    function resetCari(){
+      document.getElementById("cariRumah").value = '';
+      cariRumah();
+    }
+
+    
+    function openModal(html, title){
+      document.getElementById('modalTitle').innerText = title || 'Detail Rumah';
+      document.getElementById('modalBody').innerHTML = html;
+      document.getElementById('modalBackdrop').style.display = 'flex';
+    }
+    function closeModal(){ document.getElementById('modalBackdrop').style.display = 'none'; history.replaceState(null, '', baseUrlForHash()); }
+
+function openDetail(id) {
+  const r = dataRumah.find(x => x._id === id);
+  if (!r) return alert('Data tidak ditemukan: ' + id);
+
+  const html = `
+    <div class="modal-content">
+      <div class="modal-left">
+        <img src="${fotoUrl(r.foto)}" alt="Foto Rumah">
+        <p><b>ID:</b> ${r._id}</p>
+        <p><b>Koordinat:</b> ${(r.koordinat || []).join(', ')}</p>
+        <p><b>Jumlah anggota:</b> ${r.anggota?.length || 0}</p>
+      </div>
+      <div class="modal-right">
+        <h4>Data Anggota</h4>
+        ${buatTabelPopupUntukAnggota(r.anggota)}
+        <div class="qr-area">
+          <div id="modal_qr_${r._id}"></div>
+          <small>Scan QR untuk buka detail di perangkat lain.</small>
+        </div>
+      </div>
+    </div>
+  `;
+
+  openModal(html, r.namaRumah || r._id);
+
+  setTimeout(() => {
+    const el = document.getElementById('modal_qr_' + r._id);
+    if (el && el.childElementCount === 0)
+      new QRCode(el, { text: baseUrlForHash() + '#detail=' + r._id, width: 110, height: 110 });
+  }, 100);
+}
+
+window.addEventListener("load", () => {
+  const hash = window.location.hash;
+  if (hash && hash.startsWith("#detail=")) {
+    const id = hash.split("=")[1];
+    
+    if (sessionStorage.getItem("userLoggedIn") === "true") {
+      setTimeout(() => openDetail(id), 600);
+    } else {
+      sessionStorage.setItem("redirectAfterLogin", window.location.href);
+      window.location.href = "index.html";
+    }
+  }
+});
+function logout() {
+  sessionStorage.removeItem("userLoggedIn");
+  window.location.href = "index.html";
+}
+
+function toggleSidebar() {
+  const sidebar = document.getElementById("sidebar");
+  const overlay = document.getElementById("overlay");
+  const bars = document.querySelectorAll(".menu-toggle div");
+
+  if (sidebar.style.width === "250px") {
+    sidebar.style.width = "0";
+    overlay.style.display = "none";
+    bars[0].style.transform = "rotate(0) translate(0,0)";
+    bars[1].style.opacity = "1";
+    bars[2].style.transform = "rotate(0) translate(0,0)";
+  } else {
+    sidebar.style.width = "250px";
+    overlay.style.display = "block";
+    bars[0].style.transform = "rotate(45deg) translate(6px,6px)";
+    bars[1].style.opacity = "0";
+    bars[2].style.transform = "rotate(-45deg) translate(6px,-6px)";
+  }
+}
+
+
+
+  </script>
+</body>
+</html>
